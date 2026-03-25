@@ -31,8 +31,8 @@ pip install asterdex
 或从源码安装:
 
 ```bash
-git clone https://github.com/0xA1phaZ/asterdex.git
-cd asterdex
+git clone https://github.com/HYwooo/asterdex-python-sdk.git
+cd asterdex-python-sdk
 pip install -e .
 ```
 
