@@ -1,13 +1,6 @@
 # Aster DEX Python SDK
 
-<p align="center">
-  <a href="https://pypi.org/project/asterdex/">
-    <img src="https://img.shields.io/pypi/v/asterdex.svg" alt="PyPI Version">
-  </a>
-  <a href="https://pypi.org/project/asterdex/">
-    <img src="https://img.shields.io/pypi/pyversions/asterdex.svg" alt="Python Versions">
-  </a>
-</p>
+
 
 > Aster DEX Python SDK - 支持V3 (EIP712) 完整API的异步交易库
 
