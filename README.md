@@ -126,23 +126,9 @@ asyncio.run(main())
 
 ## ⚠️ V1 API 说明
 
-V1 API (HMAC认证) 默认**禁用**，需要显式启用:
+V1 API 已废弃，**不再维护**。请使用 [ccxt](https://github.com/ccxt/ccxt) 库访问 Aster V1 API。
 
-```python
-from asterdex import Client
-
-# 启用V1 API (会输出警告)
-client = Client.v1(
-    api_key="your_api_key",
-    secret_key="your_secret_key",
-    enable_v1=True
-)
-```
-
-或设置环境变量:
-```bash
-export ASTERDEX_ENABLE_V1=true
-```
+ccxt 支持 Aster DEX 的 V1 API，提供了完整的市场数据和交易功能。
 
 ---
 
@@ -412,15 +398,15 @@ asyncio.run(main())
 
 ## 📄 许可证
 
-### 主许可证: LGPL v3
+### 主许可证: Apache 2.0
 
-本库采用 **GNU Lesser General Public License v3 (LGPL v3)** 许可证。
+本库采用 **Apache License 2.0** 许可证。
 
 这意味着：
 - ✅ 您可以在商业项目中使用本库
 - ✅ 您可以修改本库源代码
-- ✅ 如果您只修改库本身而不是应用程序，您可以分发修改后的版本
-- ✅ 如果您将本库链接到您的应用程序中，您的应用程序必须开源
+- ✅ 您可以分发修改后的版本
+- ✅ 您可以将本库链接到您的应用程序中，无需开源
 
 **完整许可证条款请查看 [LICENSE](LICENSE) 文件。**
 
