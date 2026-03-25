@@ -5,9 +5,9 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "asterdex"
 version = "0.1.0"
-description = "Aster DEX Python SDK - 支持V1和V3 API的异步交易库"
+description = "Aster DEX Python SDK - 支持V3 (EIP712) API的异步交易库"
 readme = "README.md"
-license = {text = "LGPL-3.0-or-later"}
+
 authors = [
     {name = "Aster DEX SDK Contributors", email = "contact@asterdex.com"}
 ]
@@ -15,7 +15,6 @@ requires-python = ">=3.9"
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
@@ -54,6 +53,9 @@ include = ["asterdex*"]
 
 [tool.setuptools.package-data]
 asterdex = []
+
+[tool.setuptools]
+license-files = []
 
 [tool.black]
 line-length = 100
