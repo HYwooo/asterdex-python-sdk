@@ -15,14 +15,15 @@ class V3Client(BaseAPIClient):
 
     def __init__(
         self,
-        user: str,
-        signer: str,
-        private_key: str,
+        user: Optional[str] = None,
+        signer: Optional[str] = None,
+        private_key: Optional[str] = None,
         network: Network = DEFAULT_NETWORK,
     ):
         super().__init__(network)
         self.api_version = V3_API_VERSION
-        self.signer = EIP712Signer(user, signer, private_key)
+        self._has_auth = all([user, signer, private_key])
+        self.signer = EIP712Signer(user, signer, private_key) if self._has_auth else None
 
     async def noop(self, nonce: int) -> dict[str, Any]:
         """Noop操作取消pending交易

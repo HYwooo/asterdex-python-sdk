@@ -103,7 +103,6 @@ DEFAULT_TIMEOUT: int = int(os.getenv("ASTERDEX_TIMEOUT", "30"))
 DEFAULT_MAX_RETRIES: int = int(os.getenv("ASTERDEX_MAX_RETRIES", "3"))
 
 # API配置
-V1_API_VERSION = "v1"
 V3_API_VERSION = "v3"
 
 # WebSocket配置

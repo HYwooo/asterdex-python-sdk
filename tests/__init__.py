@@ -1,6 +1,12 @@
 """测试配置"""
 
 import os
+from pathlib import Path
+
+from dotenv import load_dotenv
+
+env_path = Path(__file__).parent.parent / ".env.local"
+load_dotenv(env_path)
 
 
 def _require_env(name: str) -> str:
@@ -13,5 +19,3 @@ def _require_env(name: str) -> str:
 TESTNET_V3_USER = _require_env("ASTERDEX_TEST_USER")
 TESTNET_V3_SIGNER = _require_env("ASTERDEX_TEST_SIGNER")
 TESTNET_V3_PRIVATE_KEY = _require_env("ASTERDEX_TEST_PRIVATE_KEY")
-TEST_V1_API_KEY = _require_env("TEST_V1_API_KEY")
-TEST_V1_SECRET_KEY = _require_env("TEST_V1_SECRET_KEY")

@@ -115,7 +115,7 @@ def set_module_log_level(name: str, level: LogLevel) -> None:
     """设置特定模块的日志级别
 
     Args:
-        name: 模块名称 (例如 "asterdex.api.v1")
+        name: 模块名称 (例如 "asterdex.api.v3")
         level: 日志级别
     """
     logger = logging.getLogger(name)

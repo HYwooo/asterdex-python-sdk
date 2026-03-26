@@ -1,38 +1,5 @@
 import pytest
-from asterdex.api.v1.auth import HMACSigner
 from asterdex.api.v3.auth import EIP712Signer
-
-
-class TestHMACSigner:
-    def test_sign_generates_signature(self):
-        signer = HMACSigner("test_key", "test_secret")
-        params = {"symbol": "BTCUSDT", "side": "BUY"}
-        signed = signer.sign(params)
-
-        assert "signature" in signed
-        assert "timestamp" in signed
-        assert signed["symbol"] == "BTCUSDT"
-
-    def test_sign_adds_timestamp(self):
-        signer = HMACSigner("api_key", "secret")
-        params = {"test": "value"}
-        signed = signer.sign(params)
-
-        assert signed["timestamp"] is not None
-        assert len(signed["timestamp"]) == 13
-
-    def test_sign_adds_recv_window(self):
-        signer = HMACSigner("key", "secret", recv_window=3000)
-        params = {}
-        signed = signer.sign(params)
-
-        assert signed["recvWindow"] == "3000"
-
-    def test_get_headers(self):
-        signer = HMACSigner("my_key", "my_secret")
-        headers = signer.get_headers()
-
-        assert headers["X-MBX-APIKEY"] == "my_key"
 
 
 class TestEIP712Signer:
