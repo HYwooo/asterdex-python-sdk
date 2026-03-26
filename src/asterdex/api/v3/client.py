@@ -3,6 +3,7 @@
 from typing import Any, Optional
 
 from ...constants import DEFAULT_NETWORK, V3_API_VERSION, Network
+from ...exceptions import AuthenticationError
 from ...logging_config import get_logger
 from ..base import BaseAPIClient
 from .auth import EIP712Signer
@@ -25,12 +26,18 @@ class V3Client(BaseAPIClient):
         self._has_auth = all([user, signer, private_key])
         self.signer = EIP712Signer(user, signer, private_key) if self._has_auth else None
 
+    def _require_auth(self) -> None:
+        """要求认证，未认证时抛出异常"""
+        if not self._has_auth or self.signer is None:
+            raise AuthenticationError("Authentication required for signed operations")
+
     async def noop(self, nonce: int) -> dict[str, Any]:
         """Noop操作取消pending交易
 
         Args:
             nonce: 要取消的nonce值
         """
+        self._require_auth()
         params, _ = self.signer.sign({"nonce": str(nonce)})
         headers = self.signer.get_headers()
         return await self.post(f"/fapi/{self.api_version}/noop", data=params, headers=headers)
@@ -159,6 +166,7 @@ class V3Client(BaseAPIClient):
         if position_side:
             params["positionSide"] = position_side
 
+        self._require_auth()
         signed_params, _ = self.signer.sign(params)
         headers = self.signer.get_headers()
         return await self.post(
@@ -173,6 +181,7 @@ class V3Client(BaseAPIClient):
         Args:
             orders: 订单列表，每项包含symbol, side, type, quantity, price, timeInForce
         """
+        self._require_auth()
         import json
 
         params, _ = self.signer.sign({"batchOrders": json.dumps(orders)})
@@ -185,18 +194,21 @@ class V3Client(BaseAPIClient):
 
     async def cancel_order(self, symbol: str, order_id: int) -> dict[str, Any]:
         """取消订单"""
+        self._require_auth()
         params, _ = self.signer.sign({"symbol": symbol, "orderId": str(order_id)})
         headers = self.signer.get_headers()
         return await self.delete(f"/fapi/{self.api_version}/order", params=params, headers=headers)
 
     async def get_order(self, symbol: str, order_id: int) -> dict[str, Any]:
         """查询订单"""
+        self._require_auth()
         params, _ = self.signer.sign({"symbol": symbol, "orderId": str(order_id)})
         headers = self.signer.get_headers()
         return await self.get(f"/fapi/{self.api_version}/order", params=params, headers=headers)
 
     async def get_open_orders(self, symbol: Optional[str] = None) -> dict[str, Any]:
         """查询当前挂单"""
+        self._require_auth()
         params: dict[str, Any] = {}
         if symbol:
             params["symbol"] = symbol
@@ -210,12 +222,14 @@ class V3Client(BaseAPIClient):
 
     async def get_balance(self) -> dict[str, Any]:
         """查询账户余额"""
+        self._require_auth()
         params, _ = self.signer.sign({})
         headers = self.signer.get_headers()
         return await self.get(f"/fapi/{self.api_version}/balance", params=params, headers=headers)
 
     async def get_position(self, symbol: Optional[str] = None) -> dict[str, Any]:
         """查询持仓"""
+        self._require_auth()
         params: dict[str, Any] = {}
         if symbol:
             params["symbol"] = symbol
@@ -229,12 +243,14 @@ class V3Client(BaseAPIClient):
 
     async def get_account_info(self) -> dict[str, Any]:
         """获取账户信息 (V3)"""
+        self._require_auth()
         params, _ = self.signer.sign({})
         headers = self.signer.get_headers()
         return await self.get(f"/fapi/{self.api_version}/account", params=params, headers=headers)
 
     async def set_leverage(self, symbol: str, leverage: int) -> dict[str, Any]:
         """调整杠杆"""
+        self._require_auth()
         params, _ = self.signer.sign({"symbol": symbol, "leverage": str(leverage)})
         headers = self.signer.get_headers()
         return await self.post(
@@ -245,6 +261,7 @@ class V3Client(BaseAPIClient):
 
     async def set_margin_type(self, symbol: str, margin_type: str) -> dict[str, Any]:
         """调整保证金模式"""
+        self._require_auth()
         params, _ = self.signer.sign({"symbol": symbol, "marginType": margin_type})
         headers = self.signer.get_headers()
         return await self.post(
@@ -261,6 +278,7 @@ class V3Client(BaseAPIClient):
         limit: int = 500,
     ) -> dict[str, Any]:
         """查询所有订单"""
+        self._require_auth()
         params: dict[str, Any] = {"symbol": symbol, "limit": limit}
         if start_time:
             params["startTime"] = start_time
@@ -280,6 +298,7 @@ class V3Client(BaseAPIClient):
         limit: int = 500,
     ) -> dict[str, Any]:
         """查询账户交易历史"""
+        self._require_auth()
         params: dict[str, Any] = {"limit": limit}
         if symbol:
             params["symbol"] = symbol
@@ -295,6 +314,7 @@ class V3Client(BaseAPIClient):
 
     async def get_commission_rate(self, symbol: str) -> dict[str, Any]:
         """查询手续费率"""
+        self._require_auth()
         params, _ = self.signer.sign({"symbol": symbol})
         headers = self.signer.get_headers()
         return await self.get(
@@ -303,6 +323,7 @@ class V3Client(BaseAPIClient):
 
     async def cancel_all_open_orders(self, symbol: str) -> dict[str, Any]:
         """取消所有挂单"""
+        self._require_auth()
         params, _ = self.signer.sign({"symbol": symbol})
         headers = self.signer.get_headers()
         return await self.delete(
@@ -311,6 +332,7 @@ class V3Client(BaseAPIClient):
 
     async def cancel_multiple_orders(self, symbol: str, order_ids: list[int]) -> dict[str, Any]:
         """批量取消订单"""
+        self._require_auth()
         import json
 
         order_id_list = [str(oid) for oid in order_ids]
@@ -328,6 +350,7 @@ class V3Client(BaseAPIClient):
         limit: int = 100,
     ) -> dict[str, Any]:
         """查询收益历史"""
+        self._require_auth()
         params: dict[str, Any] = {"limit": limit}
         if symbol:
             params["symbol"] = symbol
@@ -343,6 +366,7 @@ class V3Client(BaseAPIClient):
 
     async def get_leverage_bracket(self, symbol: Optional[str] = None) -> dict[str, Any]:
         """查询杠杆分级"""
+        self._require_auth()
         params: dict[str, Any] = {}
         if symbol:
             params["symbol"] = symbol
@@ -358,6 +382,7 @@ class V3Client(BaseAPIClient):
         Args:
             hedge_mode: True为对冲模式, False为单向模式
         """
+        self._require_auth()
         params, _ = self.signer.sign({"positionSide": "HEDGE" if hedge_mode else "ONEWAY"})
         headers = self.signer.get_headers()
         return await self.post(
@@ -366,6 +391,7 @@ class V3Client(BaseAPIClient):
 
     async def get_position_mode(self) -> dict[str, Any]:
         """获取当前持仓模式"""
+        self._require_auth()
         params, _ = self.signer.sign({})
         headers = self.signer.get_headers()
         return await self.get(
@@ -380,6 +406,7 @@ class V3Client(BaseAPIClient):
             amount: 数量
             type: 1: 现货->合约, 2: 合约->现货
         """
+        self._require_auth()
         params, _ = self.signer.sign({"asset": asset, "amount": amount, "type": str(type)})
         headers = self.signer.get_headers()
         return await self.post(f"/fapi/{self.api_version}/transfer", data=params, headers=headers)
@@ -515,6 +542,7 @@ class V3Client(BaseAPIClient):
             symbol: 交易对
             order_id: 订单ID
         """
+        self._require_auth()
         params, _ = self.signer.sign({"symbol": symbol, "orderId": str(order_id)})
         headers = self.signer.get_headers()
         return await self.get(f"/fapi/{self.api_version}/openOrder", params=params, headers=headers)
@@ -534,6 +562,7 @@ class V3Client(BaseAPIClient):
             amount: 调整数量 (正数增加, 负数减少)
             type: 1: 增加保证金, 2: 减少保证金
         """
+        self._require_auth()
         params, _ = self.signer.sign({"symbol": symbol, "amount": amount, "type": str(type)})
         headers = self.signer.get_headers()
         return await self.post(
@@ -557,6 +586,7 @@ class V3Client(BaseAPIClient):
             start_time: 起始时间
             end_time: 结束时间
         """
+        self._require_auth()
         params: dict[str, Any] = {"symbol": symbol, "limit": limit}
         if start_time:
             params["startTime"] = start_time
@@ -578,6 +608,7 @@ class V3Client(BaseAPIClient):
         Args:
             symbol: 交易对 (可选)
         """
+        self._require_auth()
         params: dict[str, Any] = {}
         if symbol:
             params["symbol"] = symbol
@@ -604,6 +635,7 @@ class V3Client(BaseAPIClient):
             start_time: 起始时间
             end_time: 结束时间
         """
+        self._require_auth()
         params: dict[str, Any] = {"limit": limit}
         if symbol:
             params["symbol"] = symbol
@@ -634,6 +666,7 @@ class V3Client(BaseAPIClient):
 
         GET /fapi/v3/multiAssetsMargin
         """
+        self._require_auth()
         params, _ = self.signer.sign({})
         headers = self.signer.get_headers()
         return await self.get(
@@ -648,6 +681,7 @@ class V3Client(BaseAPIClient):
         Args:
             multi_assets_margin: True开启, False关闭
         """
+        self._require_auth()
         params, _ = self.signer.sign(
             {"multiAssetsMargin": "true" if multi_assets_margin else "false"}
         )
@@ -669,6 +703,7 @@ class V3Client(BaseAPIClient):
             symbol: 交易对
             countdown_time: 倒计时时间(毫秒), 0表示取消
         """
+        self._require_auth()
         params, _ = self.signer.sign({"symbol": symbol, "countdownTime": str(countdown_time)})
         headers = self.signer.get_headers()
         return await self.post(
@@ -680,6 +715,7 @@ class V3Client(BaseAPIClient):
 
         POST /fapi/v3/listenKey
         """
+        self._require_auth()
         params, _ = self.signer.sign({})
         headers = self.signer.get_headers()
         return await self.post(f"/fapi/{self.api_version}/listenKey", data=params, headers=headers)
@@ -692,6 +728,7 @@ class V3Client(BaseAPIClient):
         Args:
             listen_key: listenKey值
         """
+        self._require_auth()
         params, _ = self.signer.sign({"listenKey": listen_key})
         headers = self.signer.get_headers()
         return await self.put(f"/fapi/{self.api_version}/listenKey", data=params, headers=headers)
@@ -704,6 +741,7 @@ class V3Client(BaseAPIClient):
         Args:
             listen_key: listenKey值
         """
+        self._require_auth()
         params, _ = self.signer.sign({"listenKey": listen_key})
         headers = self.signer.get_headers()
         return await self.delete(

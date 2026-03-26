@@ -9,7 +9,7 @@
 ```
 asterdex/
 ├── __init__.py           # 主入口，导出所有公共API
-├── client.py             # 统一客户端入口 (Client.v1 / Client.v3)
+├── client.py             # 统一客户端入口 (Client.v3)
 ├── constants.py          # 常量定义 (枚举、网络配置、订单类型等)
 ├── exceptions.py         # 异常类层次结构
 ├── logging_config.py    # 日志配置
@@ -18,9 +18,6 @@ asterdex/
 ├── api/
 │   ├── base.py          # 基础API客户端 (请求处理、限速、重试)
 │   ├── rate_limiter.py  # 漏桶限速器
-│   ├── v1/
-│   │   ├── client.py    # V1 API客户端 (HMAC签名)
-│   │   └── auth.py      # V1 HMAC签名器
 │   └── v3/
 │       ├── client.py    # V3 API客户端 (EIP712签名)
 │       └── auth.py      # V3 EIP712签名器
@@ -40,7 +37,6 @@ asterdex/
 | 需求 | 使用的类/函数 |
 |------|--------------|
 | 创建V3客户端 | `Client.v3(user, signer, private_key, network)` |
-| 创建V1客户端 | `Client.v1(api_key, secret_key, enable_v1=True)` |
 | 市场数据查询 | `client.market.*` 或直接调用 `client.get_xxx()` |
 | 下单/撤单 | `client.order.*` 或直接调用 `client.create_order()` |
 | WebSocket实时数据 | `WebSocketClient` 类 + `@ws.on_xxx()` 装饰器 |
@@ -57,30 +53,7 @@ asterdex/
 
 提供统一的客户端创建接口。
 
-#### 创建V3客户端 (推荐)
-
-```python
-from asterdex import Client, Network
-
-client = Client.v3(
-    user="0x主账户钱包地址",          # 主账户钱包地址 (0x开头)
-    signer="0xAPI签名者地址",         # API签名者钱包地址
-    private_key="0x私钥",            # 私钥 (0x开头)
-    network=Network.TESTNET          # 默认testnet
-)
-```
-
-#### 创建V1客户端 (需要显式启用)
-
-```python
-from asterdex import Client
-
-client = Client.v1(
-    api_key="your_api_key",
-    secret_key="your_secret_key",
-    enable_v1=True  # 必须显式启用
-)
-```
+#### 创建V3客户端
 
 #### 客户端属性访问
 

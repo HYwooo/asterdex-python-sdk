@@ -125,6 +125,44 @@ ccxt 支持 Aster DEX 的 V1 API，提供了完整的市场数据和交易功能
 
 ---
 
+## 公开端点 vs 私有端点
+
+SDK 方法分为**公开端点**（无需认证）和**私有端点**（需要认证）。
+
+### 公开端点（无需认证）
+
+```python
+# 无需认证即可访问
+client = Client.v3(network=Network.TESTNET)
+
+await client.ping()                    # 测试连接
+await client.get_time()                # 服务器时间
+await client.get_order_book("BTCUSDT") # 订单簿
+await client.get_klines("BTCUSDT", "1h") # K线
+await client.get_ticker_24h("BTCUSDT") # 24小时行情
+await client.get_mark_price("BTCUSDT") # 标记价格
+```
+
+### 私有端点（需要认证）
+
+```python
+# 需要提供认证信息
+client = Client.v3(
+    user="0x...",
+    signer="0x...",
+    private_key="0x...",
+    network=Network.TESTNET
+)
+
+# 未认证时调用私有端点会抛出 AuthenticationError
+try:
+    await client.get_balance()
+except AuthenticationError as e:
+    print(f"需要认证: {e}")
+```
+
+---
+
 ## 🔧 全局配置
 
 ### 2.1 环境变量
@@ -135,7 +173,6 @@ ccxt 支持 Aster DEX 的 V1 API，提供了完整的市场数据和交易功能
 | `ASTERDEX_LOG_LEVEL` | `INFO` | 日志级别: `DEBUG`, `INFO`, `WARNING`, `ERROR` |
 | `ASTERDEX_TIMEOUT` | `30` | 请求超时秒数 |
 | `ASTERDEX_MAX_RETRIES` | `3` | 最大重试次数 |
-| `ASTERDEX_ENABLE_V1` | `false` | 启用V1 API |
 
 ### 2.2 日志配置
 
