@@ -3,7 +3,6 @@ from asterdex.constants import (
     Network,
     DEFAULT_TIMEOUT,
     DEFAULT_MAX_RETRIES,
-    V1_API_VERSION,
     V3_API_VERSION,
 )
 from asterdex.logging_config import get_logger, set_log_level, LogLevel
@@ -21,9 +20,6 @@ class TestConstants:
 
     def test_default_max_retries(self):
         assert DEFAULT_MAX_RETRIES == 3
-
-    def test_v1_api_version(self):
-        assert V1_API_VERSION == "v1"
 
     def test_v3_api_version(self):
         assert V3_API_VERSION == "v3"

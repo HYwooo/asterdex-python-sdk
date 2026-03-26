@@ -90,12 +90,11 @@ class HybridClient:
     async def _ensure_rest_client(self) -> V3Client:
         """确保REST客户端已初始化"""
         if self._rest_client is None:
-            if not all([self._user, self._signer, self._private_key]):
-                raise WSFallbackError("REST fallback requires user, signer, and private_key")
+            has_auth = all([self._user, self._signer, self._private_key])
             self._rest_client = V3Client(
-                user=self._user,
-                signer=self._signer,
-                private_key=self._private_key,
+                user=self._user if has_auth else None,
+                signer=self._signer if has_auth else None,
+                private_key=self._private_key if has_auth else None,
                 network=self.network,
             )
         return self._rest_client
@@ -109,6 +108,11 @@ class HybridClient:
 
         try:
             await self._ws_client.connect()
+
+            # 订阅已注册的 streams
+            for stream in self._callbacks.keys():
+                await self._ws_client.subscribe(stream)
+
             logger.info("[Hybrid] WebSocket connected, exiting fallback mode")
             self._fallback_mode = False
             self._current_poll_interval = self._poll_interval
@@ -151,12 +155,15 @@ class HybridClient:
         rest = await self._ensure_rest_client()
 
         for stream, callbacks in self._callbacks.items():
+            if not callbacks:
+                continue
+
             if "@bookTicker" in stream:
                 symbol = stream.split("@")[0].upper()
                 try:
                     data = await rest.get_order_book(symbol)
                     for cb in callbacks:
-                        await cb({"data": data})
+                        await cb(data)
                 except Exception as e:
                     logger.warning(f"[Hybrid] Poll failed for {stream}: {e}")
             elif "@ticker" in stream:
@@ -164,7 +171,7 @@ class HybridClient:
                 try:
                     data = await rest.get_ticker_24h(symbol)
                     for cb in callbacks:
-                        await cb({"data": data})
+                        await cb(data)
                 except Exception as e:
                     logger.warning(f"[Hybrid] Poll failed for {stream}: {e}")
             elif "@kline_" in stream:
@@ -174,7 +181,7 @@ class HybridClient:
                 try:
                     data = await rest.get_klines(symbol, interval, limit=1)
                     for cb in callbacks:
-                        await cb({"data": {"k": data[-1] if data else {}}})
+                        await cb(data[-1] if data else {})
                 except Exception as e:
                     logger.warning(f"[Hybrid] Poll failed for {stream}: {e}")
             elif "@aggTrade" in stream:
@@ -182,7 +189,7 @@ class HybridClient:
                 try:
                     data = await rest.get_trades(symbol, limit=1)
                     for cb in callbacks:
-                        await cb({"data": data[0] if data else {}})
+                        await cb(data[0] if data else {})
                 except Exception as e:
                     logger.warning(f"[Hybrid] Poll failed for {stream}: {e}")
             elif "@markPrice" in stream:
@@ -190,11 +197,9 @@ class HybridClient:
                 try:
                     data = await rest.get_mark_price(symbol)
                     for cb in callbacks:
-                        await cb({"data": data})
+                        await cb(data)
                 except Exception as e:
                     logger.warning(f"[Hybrid] Poll failed for {stream}: {e}")
-
-        logger.warning(f"[Hybrid] REST polling at interval {self._current_poll_interval:.1f}s")
 
     def _adjust_poll_interval(self) -> None:
         """调整轮询间隔
@@ -231,6 +236,11 @@ class HybridClient:
             self._poll_task = None
 
         await self._ws_client.disconnect()
+
+        if self._rest_client:
+            await self._rest_client.close()
+            self._rest_client = None
+
         logger.info("[Hybrid] Disconnected")
 
     def on(self, stream: str) -> Callable:
@@ -247,61 +257,68 @@ class HybridClient:
         """订阅订单簿更新"""
         stream = f"{symbol.lower()}@bookTicker"
 
-        async def wrapper(data: dict[str, Any]) -> None:
-            for callback in self._callbacks.get(stream, []):
-                await callback(data.get("data", data))
+        # 注册到 WebSocket 客户端
+        self._ws_client.on_book_ticker(symbol)
 
-        self._callbacks.setdefault(stream, []).append(wrapper)
-        self._ws_client.on_book_ticker(symbol)(wrapper)
-        return wrapper
+        def decorator(func: Callable) -> Callable:
+            self._callbacks.setdefault(stream, []).append(func)
+            # 同时注册到 WebSocket 客户端以便在正常模式下接收数据
+            self._ws_client.on(stream)(func)
+            return func
+
+        return decorator
 
     def on_kline(self, symbol: str, interval: str = "1m") -> Callable:
         """订阅K线数据"""
         stream = f"{symbol.lower()}@kline_{interval}"
 
-        async def wrapper(data: dict[str, Any]) -> None:
-            for callback in self._callbacks.get(stream, []):
-                await callback(data.get("data", data).get("k", {}))
+        self._ws_client.on_kline(symbol, interval)
 
-        self._callbacks.setdefault(stream, []).append(wrapper)
-        self._ws_client.on_kline(symbol, interval)(wrapper)
-        return wrapper
+        def decorator(func: Callable) -> Callable:
+            self._callbacks.setdefault(stream, []).append(func)
+            self._ws_client.on(stream)(func)
+            return func
+
+        return decorator
 
     def on_ticker(self, symbol: str) -> Callable:
         """订阅24小时行情"""
         stream = f"{symbol.lower()}@ticker"
 
-        async def wrapper(data: dict[str, Any]) -> None:
-            for callback in self._callbacks.get(stream, []):
-                await callback(data.get("data", data))
+        self._ws_client.on_ticker(symbol)
 
-        self._callbacks.setdefault(stream, []).append(wrapper)
-        self._ws_client.on_ticker(symbol)(wrapper)
-        return wrapper
+        def decorator(func: Callable) -> Callable:
+            self._callbacks.setdefault(stream, []).append(func)
+            self._ws_client.on(stream)(func)
+            return func
+
+        return decorator
 
     def on_trade(self, symbol: str) -> Callable:
         """订阅成交数据"""
         stream = f"{symbol.lower()}@aggTrade"
 
-        async def wrapper(data: dict[str, Any]) -> None:
-            for callback in self._callbacks.get(stream, []):
-                await callback(data.get("data", data))
+        self._ws_client.on_trade(symbol)
 
-        self._callbacks.setdefault(stream, []).append(wrapper)
-        self._ws_client.on_trade(symbol)(wrapper)
-        return wrapper
+        def decorator(func: Callable) -> Callable:
+            self._callbacks.setdefault(stream, []).append(func)
+            self._ws_client.on(stream)(func)
+            return func
+
+        return decorator
 
     def on_mark_price(self, symbol: str) -> Callable:
         """订阅标记价格"""
         stream = f"{symbol.lower()}@markPrice"
 
-        async def wrapper(data: dict[str, Any]) -> None:
-            for callback in self._callbacks.get(stream, []):
-                await callback(data.get("data", data))
+        self._ws_client.on_mark_price(symbol)
 
-        self._callbacks.setdefault(stream, []).append(wrapper)
-        self._ws_client.on_mark_price(symbol)(wrapper)
-        return wrapper
+        def decorator(func: Callable) -> Callable:
+            self._callbacks.setdefault(stream, []).append(func)
+            self._ws_client.on(stream)(func)
+            return func
+
+        return decorator
 
     def on_error(self, func: Callable) -> Callable:
         """注册错误回调"""

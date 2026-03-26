@@ -1,13 +1,10 @@
 """Aster DEX Python SDK
 
-支持V1 (HMAC) 和 V3 (EIP712) 双版本API的异步交易库。
+支持V3 (EIP712) API的异步交易库。
 默认连接Testnet以保证安全。
 
 快速开始:
     from asterdex import Client, Network
-
-    # V1 API
-    client = Client.v1(api_key="...", secret_key="...")
 
     # V3 API
     client = Client.v3(user="0x...", signer="0x...", private_key="0x...")
