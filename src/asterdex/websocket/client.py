@@ -7,6 +7,7 @@ import asyncio
 import json
 from typing import Callable, Optional, Union
 
+import aiohttp
 import websockets
 from websockets import WebSocketClientProtocol
 from websockets.exceptions import (
@@ -24,6 +25,7 @@ from ..constants import (
     ProductType,
 )
 from ..exceptions import (
+    ValidationError,
     WebSocketError,
     WSConnectionError,
     WSReconnectError,
@@ -69,6 +71,7 @@ class WebSocketClient:
         product: ProductType = ProductType.FUTURES,
         ping_interval: int = WS_PING_INTERVAL,
         use_combined: bool = True,
+        proxy: Optional[str] = None,
     ):
         self.network = network
         self.product = product
@@ -76,7 +79,10 @@ class WebSocketClient:
         self.use_combined = use_combined
         self.ping_interval = ping_interval
         self.ws_url = self.base_url
+        self._proxy = self._validate_proxy(proxy)
         self._ws: Optional[WebSocketClientProtocol] = None
+        self._ws_session: Optional[aiohttp.ClientSession] = None
+        self._using_aiohttp_ws = False
         self._running = False
         self._reconnect_attempts = 0
         self._max_reconnect = WS_MAX_RECONNECT_ATTEMPTS
@@ -84,6 +90,29 @@ class WebSocketClient:
         self._callbacks: dict[str, list[Callable]] = {}
         self._message_id = 0
         self._lock = asyncio.Lock()
+
+    def _validate_proxy(self, proxy: Optional[str]) -> Optional[str]:
+        """验证代理URL格式"""
+        if proxy is None:
+            return None
+
+        proxy_lower = proxy.lower()
+        if proxy_lower.startswith(("http://", "https://")):
+            return proxy
+        else:
+            raise ValidationError(
+                f"不支持的代理类型: {proxy}. 支持的类型: http://, https://",
+                field="proxy",
+            )
+
+    async def _create_proxy_session(self) -> aiohttp.ClientSession:
+        """创建带代理的aiohttp会话"""
+        if self._ws_session is None or self._ws_session.closed:
+            if self._proxy:
+                self._ws_session = aiohttp.ClientSession(proxy=self._proxy)
+            else:
+                self._ws_session = aiohttp.ClientSession()
+        return self._ws_session
 
     async def connect(self, streams: Optional[list[str]] = None) -> None:
         """建立WebSocket连接
@@ -104,13 +133,23 @@ class WebSocketClient:
             else:
                 self.ws_url = f"{self.base_url}/ws"
 
-            logger.info(f"[WS] Connecting to {self.ws_url} (product={self.product.value})")
-
-            self._ws = await websockets.connect(
-                self.ws_url,
-                ping_interval=self.ping_interval,
-                ping_timeout=30,
+            logger.info(
+                f"[WS] Connecting to {self.ws_url} (product={self.product.value}, proxy={self._proxy})"
             )
+
+            if self._proxy:
+                session = await self._create_proxy_session()
+                ws = await session.ws_connect(self.ws_url)
+                self._ws = ws
+                self._using_aiohttp_ws = True
+            else:
+                self._ws = await websockets.connect(
+                    self.ws_url,
+                    ping_interval=self.ping_interval,
+                    ping_timeout=30,
+                )
+                self._using_aiohttp_ws = False
+
             self._running = True
             self._reconnect_attempts = 0
             logger.info(f"[WS] Connected to {self.ws_url}")
@@ -140,6 +179,9 @@ class WebSocketClient:
         if self._ws:
             await self._ws.close()
             self._ws = None
+        if self._ws_session and not self._ws_session.closed:
+            await self._ws_session.close()
+            self._ws_session = None
         logger.info("WebSocket已断开")
 
     async def _receive_loop(self) -> None:
@@ -152,7 +194,16 @@ class WebSocketClient:
                 if not self._running:
                     logger.debug("[WS] Receive loop stopped (not running)")
                     break
-                await self._handle_message(message)
+                if self._using_aiohttp_ws:
+                    from aiohttp import WSMsgType
+
+                    if message.type in (WSMsgType.TEXT, WSMsgType.BINARY):
+                        msg_data = message.data
+                    else:
+                        continue
+                else:
+                    msg_data = message
+                await self._handle_message(msg_data)
         except ConnectionClosed as e:
             logger.warning(f"[WS] Connection closed: code={e.code}, reason={e.reason}")
             await self._handle_disconnect()
@@ -288,6 +339,13 @@ class WebSocketClient:
         for stream in streams:
             await self.subscribe(stream)
 
+    async def _ws_send(self, data: str) -> None:
+        """发送WebSocket消息（兼容websockets和aiohttp）"""
+        if self._using_aiohttp_ws:
+            await self._ws.send_str(data)
+        else:
+            await self._ws.send(data)
+
     async def subscribe(self, stream: str) -> bool:
         """订阅stream
 
@@ -295,14 +353,11 @@ class WebSocketClient:
             stream: stream名称，例如 "btcusdt@bookTicker"
 
         Returns:
-            是否订阅成功
-
-        Raises:
-            WebSocketError: 未连接或发送失败
+            是否成功订阅
         """
         if not self._ws or not self._running:
             logger.warning(f"[WS] Cannot subscribe: not connected (stream={stream})")
-            raise WebSocketError("Not connected")
+            return False
 
         try:
             self._message_id += 1
@@ -312,7 +367,7 @@ class WebSocketClient:
                 "id": self._message_id,
             }
 
-            await self._ws.send(json.dumps(msg))
+            await self._ws_send(json.dumps(msg))
             logger.info(f"[WS] Subscribed to {stream}")
 
             self._subscriptions.setdefault(stream, set()).add(stream)
@@ -343,7 +398,7 @@ class WebSocketClient:
                 "id": self._message_id,
             }
 
-            await self._ws.send(json.dumps(msg))
+            await self._ws_send(json.dumps(msg))
             logger.info(f"[WS] Unsubscribed from {stream}")
 
             if stream in self._subscriptions:

@@ -32,6 +32,7 @@ class Client:
         signer: str,
         private_key: str,
         network: Network = DEFAULT_NETWORK,
+        proxy: Optional[str] = None,
     ) -> "V3ClientWrapper":
         """创建V3 API客户端
 
@@ -40,14 +41,17 @@ class Client:
             signer: API钱包地址
             private_key: 私钥
             network: 网络环境 (默认testnet)
+            proxy: 代理URL (例如: "http://host:port", "socks5://host:port")
 
         Returns:
             V3客户端实例
         """
         from .api.v3.client import V3Client
 
-        client = V3Client(user=user, signer=signer, private_key=private_key, network=network)
-        logger.info(f"V3客户端已创建, network={network.value}")
+        client = V3Client(
+            user=user, signer=signer, private_key=private_key, network=network, proxy=proxy
+        )
+        logger.info(f"V3客户端已创建, network={network.value}, proxy={proxy}")
         return V3ClientWrapper(client)
 
     @classmethod

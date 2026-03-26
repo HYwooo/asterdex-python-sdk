@@ -24,8 +24,9 @@ class V3Client(BaseAPIClient):
         signer: Optional[str] = None,
         private_key: Optional[str] = None,
         network: Network = DEFAULT_NETWORK,
+        proxy: Optional[str] = None,
     ):
-        super().__init__(network)
+        super().__init__(network, proxy=proxy)
         self.api_version = V3_API_VERSION
         self._has_auth = all([user, signer, private_key])
 

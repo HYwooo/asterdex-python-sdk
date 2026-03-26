@@ -62,7 +62,8 @@ client = Client.v3(
     user="0x主账户钱包地址",          # 主账户钱包地址 (0x开头)
     signer="0xAPI签名者地址",         # API签名者钱包地址
     private_key="0x私钥",            # 私钥 (0x开头)
-    network=Network.TESTNET          # 默认testnet
+    network=Network.TESTNET,         # 默认testnet
+    proxy="http://user:pass@host:port"  # 可选: 代理支持
 )
 ```
 
@@ -107,7 +108,8 @@ async def main():
         network=Network.MAINNET,      # 网络: TESTNET/MAINNET
         product=ProductType.FUTURES,  # 产品: FUTURES(默认)/SPOT
         use_combined=True,            # 使用combined stream格式
-        ping_interval=60              # 心跳间隔(秒)
+        ping_interval=60,             # 心跳间隔(秒)
+        proxy="http://host:port"      # 可选: HTTP/HTTPS 代理
     )
 
     @ws.on_book_ticker("BTCUSDT")
@@ -188,7 +190,8 @@ client = HybridClient(
     poll_interval=1.0,         # 初始轮询间隔(秒)
     max_poll_interval=5.0,     # 最大轮询间隔
     poll_step=0.5,             # 每次增加间隔
-    no_limit=False             # 是否有轮询上限
+    no_limit=False,            # 是否有轮询上限
+    proxy="http://host:port"   # 可选: 代理支持
 )
 
 @client.on_book_ticker("BTCUSDT")
@@ -353,6 +356,21 @@ logger.debug("调试信息")
 | `ASTERDEX_LOG_LEVEL` | `INFO` | 日志级别 |
 | `ASTERDEX_TIMEOUT` | `30` | 请求超时(秒) |
 | `ASTERDEX_MAX_RETRIES` | `3` | 最大重试次数 |
+
+#### 代理支持
+
+SDK 内置支持 HTTP/HTTPS 代理:
+
+```python
+# HTTP 代理
+client = Client.v3(..., proxy="http://user:pass@host:port")
+
+# HTTPS 代理
+ws = WebSocketClient(..., proxy="https://host:port")
+
+# 带认证的 HTTPS 代理
+hybrid = HybridClient(..., proxy="https://user:pass@host:port")
+```
 
 ---
 
