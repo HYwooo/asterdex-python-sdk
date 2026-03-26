@@ -134,7 +134,7 @@ class TestWebSocketMainnet:
             await ws.connect()
             await ws.subscribe(f"{TEST_SYMBOL.lower()}@markPrice")
 
-            await asyncio.sleep(3)
+            await asyncio.sleep(5)
 
             assert len(received_data) > 0
             mark_price = received_data[-1]
@@ -297,8 +297,9 @@ class TestRESTMainnet:
 
     @pytest.mark.asyncio
     @pytest.mark.integration
+    @pytest.mark.skip(reason="Mainnet private APIs require KYC/agent registration")
     async def test_get_balance(self):
-        """测试余额查询"""
+        """测试账户余额查询"""
         from asterdex import Client
 
         client = Client.v3(
@@ -316,6 +317,7 @@ class TestRESTMainnet:
 
     @pytest.mark.asyncio
     @pytest.mark.integration
+    @pytest.mark.skip(reason="Mainnet private APIs require KYC/agent registration")
     async def test_get_positions(self):
         """测试持仓查询"""
         from asterdex import Client

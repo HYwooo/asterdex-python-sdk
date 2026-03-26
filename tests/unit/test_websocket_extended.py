@@ -21,7 +21,7 @@ class TestWebSocketExtended:
         assert ws.ping_interval == 60
         assert ws._running is False
         assert ws._reconnect_attempts == 0
-        assert ws._max_reconnect == 10
+        assert ws._max_reconnect == 20
         assert ws._subscriptions == {}
         assert ws._callbacks == {}
         assert ws._message_id == 0
