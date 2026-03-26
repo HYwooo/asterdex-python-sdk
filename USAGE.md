@@ -55,6 +55,17 @@ asterdex/
 
 #### 创建V3客户端
 
+```python
+from asterdex import Client, Network
+
+client = Client.v3(
+    user="0x主账户钱包地址",          # 主账户钱包地址 (0x开头)
+    signer="0xAPI签名者地址",         # API签名者钱包地址
+    private_key="0x私钥",            # 私钥 (0x开头)
+    network=Network.TESTNET          # 默认testnet
+)
+```
+
 #### 客户端属性访问
 
 ```python

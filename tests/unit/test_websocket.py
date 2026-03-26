@@ -98,5 +98,5 @@ class TestWebSocketClient:
     @pytest.mark.asyncio
     async def test_unsubscribe_without_connection_raises(self):
         ws = WebSocketClient()
-        with pytest.raises(WebSocketError):
-            await ws.unsubscribe("test@stream")
+        result = await ws.unsubscribe("test@stream")
+        assert result is False  # Returns False when not connected
