@@ -174,7 +174,42 @@ except AuthenticationError as e:
 | `ASTERDEX_TIMEOUT` | `30` | 请求超时秒数 |
 | `ASTERDEX_MAX_RETRIES` | `3` | 最大重试次数 |
 
-### 2.2 日志配置
+### 2.2 代理配置
+
+SDK 内置支持 HTTP/HTTPS 代理:
+
+```python
+from asterdex import Client, WebSocketClient, HybridClient, Network
+
+# HTTP 代理
+client = Client.v3(
+    user="0x...",
+    signer="0x...",
+    private_key="0x...",
+    network=Network.TESTNET,
+    proxy="http://user:password@proxy-host:port"
+)
+
+# HTTPS 代理
+ws = WebSocketClient(
+    network=Network.TESTNET,
+    proxy="https://proxy-host:port"
+)
+
+# 带认证的 HTTPS 代理
+hybrid = HybridClient(
+    user="0x...",
+    signer="0x...",
+    private_key="0x...",
+    proxy="https://user:password@proxy-host:port"
+)
+```
+
+**支持的代理类型:**
+- `http://` - HTTP 代理
+- `https://` - HTTPS 代理
+
+### 2.3 日志配置
 
 ```python
 from asterdex import LogLevel, set_log_level

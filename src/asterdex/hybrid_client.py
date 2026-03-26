@@ -66,13 +66,15 @@ class HybridClient:
         max_poll_interval: float = REST_POLLING_MAX_INTERVAL,
         poll_step: float = REST_POLLING_STEP,
         no_limit: bool = REST_POLLING_NO_LIMIT,
+        proxy: Optional[str] = None,
     ):
         self.network = network
         self._user = user
         self._signer = signer
         self._private_key = private_key
+        self._proxy = proxy
 
-        self._ws_client = WebSocketClient(network=network)
+        self._ws_client = WebSocketClient(network=network, proxy=proxy)
         self._rest_client: Optional[V3Client] = None
 
         self._poll_interval = poll_interval
@@ -96,6 +98,7 @@ class HybridClient:
                 signer=self._signer if has_auth else None,
                 private_key=self._private_key if has_auth else None,
                 network=self.network,
+                proxy=self._proxy,
             )
         return self._rest_client
 

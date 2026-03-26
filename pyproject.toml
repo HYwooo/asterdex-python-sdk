@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "asterdex"
-version = "0.2.0"
+version = "0.3.0"
 description = "Aster DEX Python SDK - 支持V3 (EIP712) API的异步交易库"
 readme = "README.md"
 

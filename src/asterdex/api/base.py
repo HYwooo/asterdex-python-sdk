@@ -9,7 +9,7 @@ from typing import Any, Optional
 import aiohttp
 
 from ..constants import DEFAULT_MAX_RETRIES, DEFAULT_TIMEOUT, Network
-from ..exceptions import APIError, NetworkError, RateLimitError, TimeoutError
+from ..exceptions import APIError, NetworkError, RateLimitError, TimeoutError, ValidationError
 from ..logging_config import get_logger
 from .rate_limiter import LeakyBucketRateLimiter, get_rate_limiter
 
@@ -24,6 +24,7 @@ class BaseAPIClient:
         network: Network = Network.TESTNET,
         timeout: int = DEFAULT_TIMEOUT,
         max_retries: int = DEFAULT_MAX_RETRIES,
+        proxy: Optional[str] = None,
     ):
         self.base_url = network.rest_url
         self.timeout = timeout
@@ -32,6 +33,21 @@ class BaseAPIClient:
         self._rate_limit_used: int = 0
         self._rate_limiter: Optional[LeakyBucketRateLimiter] = None
         self._network = network
+        self._proxy = self._validate_proxy(proxy)
+
+    def _validate_proxy(self, proxy: Optional[str]) -> Optional[str]:
+        """验证代理URL格式"""
+        if proxy is None:
+            return None
+
+        proxy_lower = proxy.lower()
+        if proxy_lower.startswith(("http://", "https://")):
+            return proxy
+        else:
+            raise ValidationError(
+                f"不支持的代理类型: {proxy}. 支持的类型: http://, https://",
+                field="proxy",
+            )
 
     @property
     def rate_limiter(self) -> LeakyBucketRateLimiter:
@@ -48,7 +64,15 @@ class BaseAPIClient:
         """获取或创建aiohttp会话"""
         if self._session is None or self._session.closed:
             timeout = aiohttp.ClientTimeout(total=self.timeout)
-            self._session = aiohttp.ClientSession(timeout=timeout)
+
+            if self._proxy:
+                self._session = aiohttp.ClientSession(
+                    timeout=timeout,
+                    proxy=self._proxy,
+                )
+            else:
+                self._session = aiohttp.ClientSession(timeout=timeout)
+
         return self._session
 
     async def close(self) -> None:
