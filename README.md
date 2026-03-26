@@ -18,7 +18,7 @@
 ## 📦 安装
 
 ```bash
-pip install asterdex
+pip install git+https://github.com/HYwooo/asterdex-python-sdk.git
 ```
 
 或从源码安装:
