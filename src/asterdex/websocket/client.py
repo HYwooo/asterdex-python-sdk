@@ -380,6 +380,41 @@ class WebSocketClient:
             logger.error(f"[WS] Subscribe failed: {type(e).__name__}: {e}")
             raise WebSocketError(f"Subscribe failed: {e}") from e
 
+    async def subscribe_batch(self, streams: list[str]) -> bool:
+        """批量订阅多个stream
+
+        Args:
+            streams: stream名称列表，例如 ["btcusdt@ticker", "ethusdt@ticker"]
+
+        Returns:
+            是否成功订阅
+        """
+        if not self._ws or not self._running:
+            logger.warning(f"[WS] Cannot subscribe batch: not connected")
+            return False
+
+        try:
+            self._message_id += 1
+            msg = {
+                "method": "SUBSCRIBE",
+                "params": streams,
+                "id": self._message_id,
+            }
+
+            await self._ws_send(json.dumps(msg))
+            logger.info(f"[WS] Batch subscribed to {len(streams)} streams")
+
+            for stream in streams:
+                self._subscriptions.setdefault(stream, set()).add(stream)
+            return True
+
+        except ConnectionClosed as e:
+            logger.error(f"[WS] Batch subscribe failed (connection closed): {e}")
+            raise WebSocketError("Batch subscribe failed: connection closed") from e
+        except Exception as e:
+            logger.error(f"[WS] Batch subscribe failed: {type(e).__name__}: {e}")
+            raise WebSocketError(f"Batch subscribe failed: {e}") from e
+
     async def unsubscribe(self, stream: str) -> bool:
         """取消订阅stream
 

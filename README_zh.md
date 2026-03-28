@@ -244,9 +244,11 @@ from asterdex.constants import (
 
 ```python
 from asterdex.constants import (
-    TIME_IN_FORCE_GTC,  # Good Till Cancel
-    TIME_IN_FORCE_IOC,  # Immediate or Cancel
-    TIME_IN_FORCE_FOK,  # Fill or Kill
+    TIME_IN_FORCE_GTC,    # Good Till Cancel - 主动取消或成交
+    TIME_IN_FORCE_IOC,     # Immediate or Cancel - 立即成交或取消
+    TIME_IN_FORCE_FOK,    # Fill or Kill - 全部成交或取消
+    TIME_IN_FORCE_GTX,    # Good Till Crossing (Post Only) - 做市商友好，只作为maker成交
+    TIME_IN_FORCE_HIDDEN,  # 隐藏订单
 )
 ```
 
