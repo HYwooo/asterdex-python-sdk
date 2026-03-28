@@ -9,7 +9,7 @@ Aster DEX Python SDK - Asynchronous trading library with full V3 (EIP712) API su
 - WebSocket: Built-in long connection, auto-reconnect, heartbeat management
 - Default Testnet: Safety-first, default to testnet
 - Type-safe: Complete type annotations
--分级日志: DEBUG/INFO/WARNING/ERROR for easy debugging
+- Log levels: DEBUG/INFO/WARNING/ERROR for easy debugging
 - High performance: Connection pool reuse, memory optimized
 - Rate limiter: Global request rate limiting with priority queue
 
@@ -244,9 +244,11 @@ from asterdex.constants import (
 
 ```python
 from asterdex.constants import (
-    TIME_IN_FORCE_GTC,
-    TIME_IN_FORCE_IOC,
-    TIME_IN_FORCE_FOK,
+    TIME_IN_FORCE_GTC,    # Good Till Cancel
+    TIME_IN_FORCE_IOC,    # Immediate or Cancel
+    TIME_IN_FORCE_FOK,    # Fill or Kill
+    TIME_IN_FORCE_GTX,    # Good Till Crossing (Post Only) - market maker friendly
+    TIME_IN_FORCE_HIDDEN, # Hidden order
 )
 ```
 
