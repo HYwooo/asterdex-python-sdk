@@ -9,6 +9,7 @@ Aster DEX Python SDK - Asynchronous trading library with full V3 (EIP712) API su
 - Async-first: Pure async implementation based on aiohttp and websockets
 - V3 EIP712 Signature: Structured data signing for enhanced security
 - WebSocket: Built-in long connection, auto-reconnect, heartbeat management
+- HTTP/HTTPS Proxy: Built-in proxy support with authentication
 - Default Testnet: Safety-first, default to testnet
 - Type-safe: Complete type annotations
 - Log levels: DEBUG/INFO/WARNING/ERROR for easy debugging

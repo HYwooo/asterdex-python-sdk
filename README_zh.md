@@ -9,6 +9,7 @@ Aster DEX Python SDK - 支持 V3 (EIP712) 完整 API 的异步交易库
 - 异步优先：基于 aiohttp 和 websockets 的纯异步实现
 - V3 EIP712 签名：结构化数据签名，更安全
 - WebSocket：内置长连接、自动重连、心跳管理
+- HTTP/HTTPS 代理：内置代理支持，支持认证
 - 默认 Testnet：安全优先，默认连接测试网
 - 类型安全：完整的类型注解
 - 分级日志：DEBUG/INFO/WARNING/ERROR 便于调试
