@@ -60,3 +60,4 @@ Thumbs.db
 # type: ignore
 api-docs/
 .sisyphus/
+nul
