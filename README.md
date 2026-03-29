@@ -2,6 +2,8 @@
 
 Aster DEX Python SDK - Asynchronous trading library with full V3 (EIP712) API support
 
+> **Language:** [English](README.md) | [中文](README_zh.md)
+
 ## Features
 
 - Async-first: Pure async implementation based on aiohttp and websockets
@@ -102,6 +104,38 @@ async def main():
     
     await ws.connect()
     print("WebSocket connected, waiting for data...")
+    
+    await asyncio.sleep(60)
+    await ws.disconnect()
+
+asyncio.run(main())
+```
+
+### WebSocket Batch Subscription
+
+Subscribe to multiple streams at once efficiently:
+
+```python
+import asyncio
+from asterdex import WebSocketClient, Network
+
+async def main():
+    ws = WebSocketClient(network=Network.TESTNET)
+    
+    @ws.on_book_ticker("BTCUSDT")
+    async def on_btc_ticker(ticker):
+        print(f"BTC - Bid: {ticker.bid_price} | Ask: {ticker.ask_price}")
+    
+    @ws.on_book_ticker("ETHUSDT")
+    async def on_eth_ticker(ticker):
+        print(f"ETH - Bid: {ticker.bid_price} | Ask: {ticker.ask_price}")
+    
+    await ws.connect()
+    
+    # Batch subscribe to multiple streams
+    streams = ["btcusdt@bookTicker", "ethusdt@bookTicker", "btcusdt@kline_1m"]
+    await ws.subscribe_batch(streams)
+    print(f"Batch subscribed to {len(streams)} streams")
     
     await asyncio.sleep(60)
     await ws.disconnect()
