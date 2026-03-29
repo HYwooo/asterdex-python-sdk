@@ -4,6 +4,26 @@ Aster DEX Python SDK - Asynchronous trading library with full V3 (EIP712) API su
 
 > **Language:** [English](README.md) | [中文](README_zh.md)
 
+## Disclaimer
+
+**IMPORTANT NOTICE**
+
+This software is a **personal project** and is not affiliated with, endorsed by, or associated with AsterDEX in any official capacity. It is intended solely for educational purposes and personal experimentation.
+
+**Risk Warning:** Cryptocurrency trading involves significant risk and can result in the complete loss of your funds. The volatility of digital assets can lead to rapid and substantial financial losses.
+
+**Liability Disclaimer:** The author(s) of this software shall not be held responsible for any direct, indirect, incidental, consequential, or punitive damages arising from the use of this software, including but not limited to trading losses, API errors, network issues, or data loss.
+
+**Usage Guidelines:**
+- Only use funds you can afford to lose entirely
+- Thoroughly test all functionality in a test environment before any live usage
+- Understand the fundamentals of cryptocurrency trading and blockchain technology
+- Comply with all applicable local, national, and international laws and regulations
+
+By using this software, you acknowledge and accept these risks and agree to use it at your own sole discretion and risk.
+
+
+
 ## Features
 
 - Async-first: Pure async implementation based on aiohttp and websockets
