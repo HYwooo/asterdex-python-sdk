@@ -2,6 +2,8 @@
 
 Aster DEX Python SDK - 支持 V3 (EIP712) 完整 API 的异步交易库
 
+> **语言:** [English](README.md) | [中文](README_zh.md)
+
 ## 特性
 
 - 异步优先：基于 aiohttp 和 websockets 的纯异步实现
@@ -102,6 +104,38 @@ async def main():
     
     await ws.connect()
     print("WebSocket 已连接，等待数据...")
+    
+    await asyncio.sleep(60)
+    await ws.disconnect()
+
+asyncio.run(main())
+```
+
+### WebSocket 批量订阅
+
+一次订阅多个 stream，高效便捷：
+
+```python
+import asyncio
+from asterdex import WebSocketClient, Network
+
+async def main():
+    ws = WebSocketClient(network=Network.TESTNET)
+    
+    @ws.on_book_ticker("BTCUSDT")
+    async def on_btc_ticker(ticker):
+        print(f"BTC - 买一: {ticker.bid_price} | 卖一: {ticker.ask_price}")
+    
+    @ws.on_book_ticker("ETHUSDT")
+    async def on_eth_ticker(ticker):
+        print(f"ETH - 买一: {ticker.bid_price} | 卖一: {ticker.ask_price}")
+    
+    await ws.connect()
+    
+    # 批量订阅多个 stream
+    streams = ["btcusdt@bookTicker", "ethusdt@bookTicker", "btcusdt@kline_1m"]
+    await ws.subscribe_batch(streams)
+    print(f"已批量订阅 {len(streams)} 个 stream")
     
     await asyncio.sleep(60)
     await ws.disconnect()
