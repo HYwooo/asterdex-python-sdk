@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Any, Optional
 from ...constants import DEFAULT_NETWORK, V3_API_VERSION, Network
 from ...exceptions import AuthenticationError
 from ...logging_config import get_logger
+from ...utils.json import dumps
 from ..base import BaseAPIClient
 
 if TYPE_CHECKING:
@@ -198,9 +199,8 @@ class V3Client(BaseAPIClient):
             orders: 订单列表，每项包含symbol, side, type, quantity, price, timeInForce
         """
         signer = self._require_auth()
-        import json
 
-        params, _ = signer.sign({"batchOrders": json.dumps(orders)})
+        params, _ = signer.sign({"batchOrders": dumps(orders)})
         headers = signer.get_headers()
         return await self.post(
             f"/fapi/{self.api_version}/batchOrders",
@@ -349,10 +349,9 @@ class V3Client(BaseAPIClient):
     async def cancel_multiple_orders(self, symbol: str, order_ids: list[int]) -> dict[str, Any]:
         """批量取消订单"""
         signer = self._require_auth()
-        import json
 
         order_id_list = [str(oid) for oid in order_ids]
-        params, _ = signer.sign({"symbol": symbol, "orderIdList": json.dumps(order_id_list)})
+        params, _ = signer.sign({"symbol": symbol, "orderIdList": dumps(order_id_list)})
         headers = signer.get_headers()
         return await self.post(
             f"/fapi/{self.api_version}/batchCancel", data=params, headers=headers

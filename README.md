@@ -39,7 +39,7 @@ By using this software, you acknowledge and accept these risks and agree to use 
 ## Installation
 
 ```bash
-pip install git+https://github.com/HYwooo/asterdex-python-sdk.git
+pip install https://fastly.jsdelivr.net/gh/HYwooo/asterdex-python-sdk@v1.0.0-alpha/dist/asterdex_sdk-1.0.0a0-py3-none-any.whl
 ```
 
 Or from source:
@@ -49,6 +49,21 @@ git clone https://github.com/HYwooo/asterdex-python-sdk.git
 cd asterdex-python-sdk
 pip install -e .
 ```
+
+### Build from Source
+
+```bash
+# Install build dependencies
+pip install build
+
+# Build wheel
+python -m build --wheel
+
+# Clean build artifacts
+rm -rf dist/ build/ *.egg-info
+```
+
+Built artifacts will be in the `dist/` directory.
 
 ## Quick Start (V3 API Recommended)
 
@@ -452,6 +467,27 @@ asyncio.run(main())
 - aiohttp >= 3.9.0
 - websockets >= 12.0
 - eth-account >= 0.11.0
+- orjson >= 3.9.0
+- coincurve >= 0.12.0
+
+## Performance
+
+This SDK is optimized for high-performance trading:
+
+### orjson - Fast JSON Parsing
+
+[orjson](https://github.com/ijl/orjson) is used for JSON serialization/deserialization, providing 2-10x faster performance compared to the standard library. This is especially important for WebSocket connections handling large messages.
+
+### coincurve - Fast ECDSA Signing
+
+[coincurve](https://github.com/ludbb/coincurve) dramatically accelerates ECDSA signature generation. When installed, `eth_account` automatically detects and uses it:
+
+| Implementation | Signing Time |
+|---------------|--------------|
+| Pure Python | ~45 ms |
+| coincurve | <0.05 ms |
+
+This ~900x speedup is critical for latency-sensitive trading applications.
 
 ---
 
@@ -490,6 +526,8 @@ This means:
 | eth-account | Apache 2.0 |
 | hexbytes | Apache 2.0 |
 | typing-extensions | PSF |
+| orjson | Apache 2.0 / MIT |
+| coincurve | MIT |
 
 ---
 

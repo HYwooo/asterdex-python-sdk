@@ -38,7 +38,7 @@ Aster DEX Python SDK - 支持 V3 (EIP712) 完整 API 的异步交易库
 ## 安装
 
 ```bash
-pip install git+https://github.com/HYwooo/asterdex-python-sdk.git
+pip install https://fastly.jsdelivr.net/gh/HYwooo/asterdex-python-sdk@v1.0.0-alpha/dist/asterdex_sdk-1.0.0a0-py3-none-any.whl
 ```
 
 或从源码安装：
@@ -48,6 +48,31 @@ git clone https://github.com/HYwooo/asterdex-python-sdk.git
 cd asterdex-python-sdk
 pip install -e .
 ```
+
+### 从源码构建
+
+```bash
+# 安装构建依赖
+pip install build
+
+# 构建 wheel
+python -m build --wheel
+
+# 清理构建产物
+rm -rf dist/ build/ *.egg-info
+```
+
+# 仅构建 wheel
+python scripts/build.py --wheel
+
+# 仅构建 tarball
+python scripts/build.py --sdist
+
+# 清理构建产物
+python scripts/build.py --clean
+```
+
+构建产物位于 `dist/` 目录。
 
 ## 快速开始（推荐使用 V3 API）
 
