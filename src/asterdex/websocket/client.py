@@ -4,8 +4,9 @@
 """
 
 import asyncio
-import json
 from typing import Callable, Optional, Union
+
+from ..utils.json import JSONDecodeError, dumps, loads
 
 import aiohttp
 import websockets
@@ -225,7 +226,7 @@ class WebSocketClient:
 
             logger.debug(f"[WS] Raw message: {message[:200]}")
 
-            data = json.loads(message)
+            data = loads(message)
 
             if isinstance(data, dict):
                 result = data.get("result")
@@ -261,7 +262,7 @@ class WebSocketClient:
                                 f"[WS] Callback error for {stream}: {type(e).__name__}: {e}"
                             )
 
-        except json.JSONDecodeError as e:
+        except JSONDecodeError as e:
             logger.warning(f"[WS] JSON parse failed: {e}, message: {message[:100]}")
         except KeyError as e:
             logger.debug(f"[WS] Missing key in message: {e}")
@@ -367,7 +368,7 @@ class WebSocketClient:
                 "id": self._message_id,
             }
 
-            await self._ws_send(json.dumps(msg))
+            await self._ws_send(dumps(msg))
             logger.info(f"[WS] Subscribed to {stream}")
 
             self._subscriptions.setdefault(stream, set()).add(stream)
@@ -401,7 +402,7 @@ class WebSocketClient:
                 "id": self._message_id,
             }
 
-            await self._ws_send(json.dumps(msg))
+            await self._ws_send(dumps(msg))
             logger.info(f"[WS] Batch subscribed to {len(streams)} streams")
 
             for stream in streams:
@@ -433,7 +434,7 @@ class WebSocketClient:
                 "id": self._message_id,
             }
 
-            await self._ws_send(json.dumps(msg))
+            await self._ws_send(dumps(msg))
             logger.info(f"[WS] Unsubscribed from {stream}")
 
             if stream in self._subscriptions:

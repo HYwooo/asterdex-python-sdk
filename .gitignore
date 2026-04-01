@@ -1,27 +1,23 @@
-# Python
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
+*.so
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+*.egg
+MANIFEST
 
 # Virtual environments
 venv/
 env/
 ENV/
-.venv
-
-# Distribution / packaging
-*.egg-info/
-dist/
-build/
-*.egg
-MANIFEST
-
-# PyInstaller
-*.manifest
-*.spec
+.venv/
 
 # Unit test / coverage
-htmlcov/
 .tox/
 .nox/
 .coverage
@@ -32,13 +28,14 @@ coverage.xml
 *.cover
 *.log
 .pytest_cache/
+htmlcov/
 
-# mypy
+# mypy / type checking
 .mypy_cache/
 .dmypy.json
 dmypy.json
 
-# ruff
+# ruff / linting
 .ruff_cache/
 
 # IDE
@@ -47,17 +44,17 @@ dmypy.json
 *.swp
 *.swo
 *~
-
-# OS
 .DS_Store
 Thumbs.db
 
-# Environment
+# Environment files
 .env
 .env.local
+.env.*.local
 *.env
 
-# type: ignore
+# Project specific
 api-docs/
 .sisyphus/
 nul
+*.tmp
