@@ -39,7 +39,7 @@ By using this software, you acknowledge and accept these risks and agree to use 
 ## Installation
 
 ```bash
-pip install https://fastly.jsdelivr.net/gh/HYwooo/asterdex-python-sdk@v1.0.0-alpha/dist/asterdex_sdk-1.0.0a0-py3-none-any.whl
+pip install https://fastly.jsdelivr.net/gh/HYwooo/asterdex-python-sdk@master/dist/asterdex_sdk-1.0.0a0-py3-none-any.whl
 ```
 
 Or from source:
